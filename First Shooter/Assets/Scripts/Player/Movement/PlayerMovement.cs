@@ -1,50 +1,114 @@
 using UnityEngine;
 
-[RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float _walkSpeed;
-    [SerializeField] private float _gravity;
-    [SerializeField] private CharacterController _characterController;
-    [SerializeField] private KeyCode _jump;
+    [SerializeField] private float _sprintSpeed;
+    [SerializeField] private float _crouchSpeed;
     [SerializeField] private float _jumpForce;
-    [SerializeField] private float _checkRadius;
-    [SerializeField] private LayerMask _jumpLayer;
-    [SerializeField] private Transform _groundChecker;
+    [SerializeField] private float _crouchYScale;
+    [SerializeField] private float _defaultYScale;
 
-    private Vector3 _velocity;
+    [SerializeField] private KeyCode _jumpKeyCode;
+    [SerializeField] private KeyCode _sprintKeyCode;
+    [SerializeField] private KeyCode _crouchKeyCode;
+
+
+    private float _moveX;
+    private float _moveZ;
+    private float _defaultMovementSpeed;
+
     private bool _isGrounded;
+
+    private Rigidbody _rigidbody;
 
     private void Start()
     {
-        _characterController = GetComponent<CharacterController>();
+        _rigidbody = GetComponent<Rigidbody>();
+
+        _defaultYScale = transform.localScale.y;
     }
 
     private void Update()
     {
         Walk();
-        if (_isGrounded && Input.GetKeyDown(_jump))
+
+        if (_isGrounded && Input.GetKeyDown(_jumpKeyCode))
         {
             Jump();
         }
-        GroundChecker();
+
+        if(Input.GetKey(_sprintKeyCode))
+        {
+            Sprint();
+        }
+        else
+        {
+            NormalizeMovementSpeed();
+        }
+
+        if (Input.GetKey(_crouchKeyCode))
+        {
+            Crouch();
+        }
+        else
+        {
+            if(Input.GetKeyUp(_crouchKeyCode)) 
+            {
+                NormalizeYScale();
+                NormalizeMovementSpeed();
+            }
+        }
     }
 
     private void Walk()
     {
-        Vector3 direction = transform.rotation * new Vector3(Input.GetAxisRaw("Horizontal") * _walkSpeed * Time.deltaTime, _gravity, Input.GetAxisRaw("Vertical") * _walkSpeed * Time.deltaTime);
+        _moveX = Input.GetAxis("Horizontal");
+        _moveZ = Input.GetAxis("Vertical");
 
-        _characterController.Move(direction);
+        _rigidbody.velocity = transform.rotation * new Vector3(_moveX * _defaultMovementSpeed, _rigidbody.velocity.y, _moveZ * _defaultMovementSpeed);
     }
 
+    private void Sprint()
+    {
+        _defaultMovementSpeed = _sprintSpeed;
+    }
+
+    private void NormalizeMovementSpeed()
+    {
+        _defaultMovementSpeed = _walkSpeed;
+    }
+
+    private void NormalizeYScale()
+    {
+        transform.localScale = new Vector3(transform.localScale.x, _defaultYScale, transform.localScale.z);
+    }
 
     private void Jump()
     {
-        _velocity.y += _jumpForce * _gravity * Time.deltaTime;
+        _rigidbody.AddForce(Vector3.up * _jumpForce, ForceMode.Impulse);
     }
 
-    private void GroundChecker()
+    private void Crouch()
     {
-        _isGrounded = Physics.CheckSphere(_groundChecker.position, _checkRadius, _jumpLayer);
+        _defaultMovementSpeed = _crouchSpeed;
+        transform.localScale = new Vector3(transform.localScale.x, _crouchYScale, transform.localScale.z);
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if(collision.gameObject.TryGetComponent<Ground>(out Ground _ground))
+        {
+            _isGrounded = true;
+        }
+    }
+
+    private void OnCollisionExit(Collision collision)
+    {
+        if (collision.gameObject.TryGetComponent<Ground>(out Ground _ground))
+        {
+            _isGrounded = false;
+        }
     }
 }
