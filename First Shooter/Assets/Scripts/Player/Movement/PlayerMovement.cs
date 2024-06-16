@@ -3,13 +3,25 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
+    [Space(10)]
+    [Header("Speed")]
     [SerializeField] private float _walkSpeed;
     [SerializeField] private float _sprintSpeed;
     [SerializeField] private float _crouchSpeed;
-    [SerializeField] private float _jumpForce;
-    [SerializeField] private float _crouchYScale;
-    [SerializeField] private float _defaultYScale;
 
+    [Space(10)]
+    [Header("Jump")]
+    [SerializeField] private float _jumpForce;
+
+    [Space(10)]
+    [Header("Crouch")]
+    [SerializeField] private float _defaultHeight;
+    [SerializeField] private float _crouchHeight;
+
+    [SerializeField] private CapsuleCollider _collider;
+
+    [Space(10)]
+    [Header("Keycodes")]
     [SerializeField] private KeyCode _jumpKeyCode;
     [SerializeField] private KeyCode _sprintKeyCode;
     [SerializeField] private KeyCode _crouchKeyCode;
@@ -17,7 +29,7 @@ public class PlayerMovement : MonoBehaviour
 
     private float _moveX;
     private float _moveZ;
-    private float _defaultMovementSpeed;
+    private float _currentMovementSpeed;
 
     private bool _isGrounded;
 
@@ -26,8 +38,7 @@ public class PlayerMovement : MonoBehaviour
     private void Start()
     {
         _rigidbody = GetComponent<Rigidbody>();
-
-        _defaultYScale = transform.localScale.y;
+        _collider = GetComponent<CapsuleCollider>();
     }
 
     private void Update()
@@ -64,25 +75,30 @@ public class PlayerMovement : MonoBehaviour
 
     private void Walk()
     {
+        GetInputs();
+
+        _rigidbody.velocity = transform.rotation * new Vector3(_moveX * _currentMovementSpeed, _rigidbody.velocity.y, _moveZ * _currentMovementSpeed);
+    }
+
+    private void GetInputs()
+    {
         _moveX = Input.GetAxis("Horizontal");
         _moveZ = Input.GetAxis("Vertical");
-
-        _rigidbody.velocity = transform.rotation * new Vector3(_moveX * _defaultMovementSpeed, _rigidbody.velocity.y, _moveZ * _defaultMovementSpeed);
     }
 
     private void Sprint()
     {
-        _defaultMovementSpeed = _sprintSpeed;
+        _currentMovementSpeed = _sprintSpeed;
     }
 
     private void NormalizeMovementSpeed()
     {
-        _defaultMovementSpeed = _walkSpeed;
+        _currentMovementSpeed = _walkSpeed;
     }
 
     private void NormalizeYScale()
     {
-        transform.localScale = new Vector3(transform.localScale.x, _defaultYScale, transform.localScale.z);
+        _collider.height = _defaultHeight;
     }
 
     private void Jump()
@@ -92,8 +108,9 @@ public class PlayerMovement : MonoBehaviour
 
     private void Crouch()
     {
-        _defaultMovementSpeed = _crouchSpeed;
-        transform.localScale = new Vector3(transform.localScale.x, _crouchYScale, transform.localScale.z);
+        _currentMovementSpeed = _crouchSpeed; 
+        _collider.height = _crouchHeight;
+        _rigidbody.AddForce(Vector3.down / 20, ForceMode.Impulse);
     }
 
     private void OnCollisionEnter(Collision collision)
