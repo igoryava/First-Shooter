@@ -30,7 +30,7 @@ public class RaycastShoot : MonoBehaviour
         {
             var hitCollider = hitInfo.collider;
 
-            if(hitCollider.TryGetComponent<IDamageable>(out IDamageable _iDamageable))
+            if(hitCollider.TryGetComponent<Damageable>(out Damageable _iDamageable))
             {
                 _iDamageable.ApplyDamage(Damage);
             }

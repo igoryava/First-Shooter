@@ -3,11 +3,16 @@ using UnityEngine;
 
 public class Health : MonoBehaviour
 {
-    [SerializeField] private float _maxHealt;
+    [SerializeField] private float _maxHealth;
 
     public event Action<float> IsHealthChanged;
 
     private float _currentHealth;
+
+    private void Start()
+    {
+        _currentHealth = _maxHealth;
+    }
 
     public void TakeDamage(float value)
     {
@@ -23,5 +28,6 @@ public class Health : MonoBehaviour
     public virtual void Death()
     {
         IsHealthChanged?.Invoke(_currentHealth);
+        Debug.Log("fwd");
     }
 }
