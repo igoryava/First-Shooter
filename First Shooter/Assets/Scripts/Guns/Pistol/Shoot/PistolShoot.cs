@@ -1,13 +1,25 @@
+using System;
+using System.Collections;
 using UnityEngine;
 public class PistolShoot : RaycastShoot
 {
     [SerializeField] private KeyCode _shootKey;
 
-    private void Update()
+    private void Start()
     {
-        if (Input.GetKeyDown(_shootKey))
+        StartCoroutine(Shooting());
+    }
+
+    private IEnumerator Shooting()
+    {
+        while (true)
         {
-            PerformAttack();
+            yield return new WaitForSeconds(0.002f);
+            if (Input.GetKeyDown(_shootKey))
+            {
+                PerformAttack();
+                yield return new WaitForSeconds(0.6f);
+            }
         }
     }
 }

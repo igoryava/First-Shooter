@@ -1,4 +1,6 @@
+using System;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class RaycastShoot : MonoBehaviour
 {
@@ -11,13 +13,13 @@ public class RaycastShoot : MonoBehaviour
     [SerializeField] private bool _useSpead;
     [SerializeField] private float _spreadFactor;
 
+    public event Action OnShooted;
+
     public void PerformAttack()
     {
+        for (var i = 0; i < _shootCount; i++)
         {
-            for (var i = 0; i < _shootCount; i++)
-            {
-                PerformRaycast();
-            }
+            PerformRaycast();
         }
     }
 
@@ -25,8 +27,8 @@ public class RaycastShoot : MonoBehaviour
     {
         var directon = _useSpead ? transform.forward + CalculateSpread() : transform.forward;
         var ray = new Ray(transform.position, directon);
-
-        if(Physics.Raycast(ray, out RaycastHit hitInfo, _distance, _layerMask))
+        OnShooted?.Invoke();
+        if (Physics.Raycast(ray, out RaycastHit hitInfo, _distance, _layerMask))
         {
             var hitCollider = hitInfo.collider;
 

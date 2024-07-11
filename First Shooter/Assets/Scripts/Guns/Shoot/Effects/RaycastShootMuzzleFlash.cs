@@ -2,19 +2,21 @@ using UnityEngine;
 
 public class RaycastShootMuzzleFlash : MonoBehaviour
 {
-    [SerializeField] private Transform _shotPosition;
     [SerializeField] private ParticleSystem _muzzleFlash;
-    [SerializeField] private KeyCode _shootKey;
+    [SerializeField] private RaycastShoot _raycastShoot;
 
-    private void Start()
+    private void OnEnable()
     {
+        _raycastShoot.OnShooted += OnShootPerform;
     }
 
-    private void Update()
+    private void OnDisable()
     {
-        if(Input.GetKeyDown(_shootKey))
-        {
-            _muzzleFlash.Play();
-        }
+        _raycastShoot.OnShooted -= OnShootPerform;  
+    }
+
+    private void OnShootPerform()
+    {
+        _muzzleFlash.Play();
     }
 }
