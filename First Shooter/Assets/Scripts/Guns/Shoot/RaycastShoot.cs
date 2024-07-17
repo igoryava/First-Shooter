@@ -13,6 +13,7 @@ public class RaycastShoot : MonoBehaviour
     [SerializeField] private bool _useSpead;
     [SerializeField] private float _spreadFactor;
 
+    public event Action <RaycastHit> OnRaycastHit;
     public event Action OnShooted;
 
     public void PerformAttack()
@@ -30,6 +31,7 @@ public class RaycastShoot : MonoBehaviour
         OnShooted?.Invoke();
         if (Physics.Raycast(ray, out RaycastHit hitInfo, _distance, _layerMask))
         {
+            OnRaycastHit?.Invoke(hitInfo);
             var hitCollider = hitInfo.collider;
 
             if(hitCollider.TryGetComponent<Damageable>(out Damageable _iDamageable))
