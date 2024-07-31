@@ -16,6 +16,8 @@ public class RaycastShoot : MonoBehaviour
     public event Action <RaycastHit> OnRaycastHit;
     public event Action OnShooted;
 
+    public RaycastHit hitInfo;
+
     public void PerformAttack()
     {
         for (var i = 0; i < _shootCount; i++)
@@ -24,19 +26,24 @@ public class RaycastShoot : MonoBehaviour
         }
     }
 
+    public virtual void Accept(IWeaponVisitor visitor)
+    {
+        visitor.Visit(this, hitInfo);
+    }
+
     private void PerformRaycast()
     {
         var directon = _useSpead ? transform.forward + CalculateSpread() : transform.forward;
         var ray = new Ray(transform.position, directon);
         OnShooted?.Invoke();
-        if (Physics.Raycast(ray, out RaycastHit hitInfo, _distance, _layerMask))
+        if (Physics.Raycast(ray, out hitInfo, _distance, _layerMask))
         {
             OnRaycastHit?.Invoke(hitInfo);
             var hitCollider = hitInfo.collider;
 
-            if(hitCollider.TryGetComponent<Damageable>(out Damageable _iDamageable))
+            if(hitCollider.TryGetComponent<IWeaponVisitor>(out IWeaponVisitor _iWeaponVisitor))
             {
-                _iDamageable.ApplyDamage(Damage);
+                Accept(_iWeaponVisitor);
             }
         }
     }
